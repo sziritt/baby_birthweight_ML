@@ -47,6 +47,28 @@ birth_weight.info()
 # Descriptive statistics
 birth_weight.describe().round(2)
 
+birth_quantiles = birth_weight.loc[:, :].quantile([0.20,
+                                                    0.40,
+                                                    0.60,
+                                                    0.80,
+                                                    1.00])
+
+print(birth_quantiles)
+# Explore variables
+for col in birth_weight:
+    print(col)
+
+"""
+Assumed Continuous/Interval Variables - 
+
+
+Assumed Categorical -
+
+
+Binary Classifiers -
+
+
+"""
 ###############################################################################
 ##### MISSING VALUES
 ###############################################################################
@@ -68,4 +90,53 @@ for col in birth_weight:
     if birth_weight[col].isnull().astype(int).sum() > 0:
         birth_weight['m_'+col] = birth_weight[col].isnull().astype(int)
 
+###############################################################################
+##### PLOTS - EXPLORATORY ANALYSIS
+###############################################################################
+##### Boxplots - for numerical variables
 
+for col in birth_weight.iloc[:, :19]: # variables
+   birth_weight.boxplot(column = col, vert = False)
+   plt.title(f"{col}")
+   plt.tight_layout()
+   plt.show()
+    
+###### Histograms with distribution plots
+
+for col in birth_weight.iloc[:, :19]:
+    sns.distplot(birth_weight[col], bins = 'fd')
+    plt.tight_layout()
+    plt.show()
+
+###############################################################################
+##### OUTLIER ANALYSIS
+###############################################################################
+
+# Define function to flag outliers
+
+def low_out(col,lim):
+    birth_weight['o_'+col] = 0
+    for val in enumerate(birth_weight.loc[ : , col]):   
+        if val[1] <= lim:
+            birth_weight.loc[val[0], 'o_'+col] = 1
+
+def up_out(col,lim):
+    birth_weight['o_'+col] = 0
+    for val in enumerate(birth_weight.loc[ : , col]):   
+        if val[1] >= lim:
+            birth_weight.loc[val[0], 'o_'+col] = 1  
+
+##### FLAGGIN LOWER OUTLIERS
+
+#low_out('', 89)
+
+
+##### FLAGGIN UPPER OUTLIERS
+
+#up_out('', 9)
+
+
+            
+###############################################################################
+##### HISTOGRAMS
+###############################################################################
