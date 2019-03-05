@@ -1,0 +1,22 @@
+|----------|---------|---------------------------------|
+| variable | label   | description                     |
+|----------|---------|---------------------------------|
+| 1        | mage    | mother's age                    |
+| 2        | meduc   | mother's educ                   |
+| 3        | monpre  | month prenatal care began       |
+| 4        | npvis   | total number of prenatal visits |
+| 5        | fage    | father's age, years             |
+| 6        | feduc   | father's educ, years            |
+| 7        | omaps   | one minute apgar score          |
+| 8        | fmaps   | five minute apgar score         |
+| 9        | cigs    | avg cigarettes per day          |
+| 10       | drink   | avg drinks per week             |
+| 11       | male    | 1 if baby male                  |
+| 12       | mwhte   | 1 if mother white               |
+| 13       | mblck   | 1 if mother black               |
+| 14       | moth    | 1 if mother is other            |
+| 15       | fwhte   | 1 if father white               |
+| 16       | fblck   | 1 if father black               |
+| 17       | foth    | 1 if father is other            |
+| 18       | bwght   | birthweight, grams              |
+|----------|---------|---------------------------------|
