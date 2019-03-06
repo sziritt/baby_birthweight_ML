@@ -127,6 +127,14 @@ lowweight.describe()
 print('very low')
 vlow.describe()
 
+# Tracking mothers with high risk:
+high_risk = birth_weight[birth_weight.npvis > 14]
+high_risk.describe()
+
+
+# temp DF - drop NAs:
+df = birth_weight.dropna()
+
 
 ## Variable distributions:
 for col in df.columns:
@@ -137,8 +145,6 @@ for col in df.columns:
 
 ## Correlation between variables:
 
-# temp DF - drop NAs:
-df = birth_weight.dropna()
 
 # adding jitter to better visualize data:
 def rand_jitter(arr):
