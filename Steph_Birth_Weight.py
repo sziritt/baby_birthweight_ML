@@ -60,13 +60,31 @@ for col in birth_weight:
 
 """
 Assumed Continuous/Interval Variables - 
+mage
+meduc
+monpre
+npvis
+fage
+feduc
 
+
+bwght
 
 Assumed Categorical -
+omaps # Could be binary less than 7 require medical attention
+fmaps # Could be binary less than 7 require medical attention
+cigs
+drink
 
 
 Binary Classifiers -
-
+male
+mwhte
+mblck
+moth
+fwhte
+fblck
+foth
 
 """
 ###############################################################################
@@ -95,15 +113,15 @@ for col in birth_weight:
 ###############################################################################
 ##### Boxplots - for numerical variables
 
-for col in birth_weight.iloc[:, :19]: # variables
+for col in birth_weight.iloc[:, :18]: # variables
    birth_weight.boxplot(column = col, vert = False)
    plt.title(f"{col}")
    plt.tight_layout()
    plt.show()
     
 ###### Histograms with distribution plots
-
-for col in birth_weight.iloc[:, :19]:
+# Doesn't work because of missing values
+for col in birth_weight.iloc[:, :18]:
     sns.distplot(birth_weight[col], bins = 'fd')
     plt.tight_layout()
     plt.show()
