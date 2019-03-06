@@ -98,19 +98,35 @@ birth_weight['m_'+col] = birth_weight[col].isnull().astype(int)
 
 
 
-
-
+# Normal weight (between 2500 and 4000)
+nweight = birth_weight[(birth_weight.bwght <= 4000) & (birth_weight.bwght >= 2500)]
 
 # LARGE FOR GESTATIONAL AGE (LGA)
 # A.K.A. "giant babies"
-birth_weight[birth_weight.bwght > 4000]
+hiweight = birth_weight[birth_weight.bwght > 4000]
 
 #230 LGAs (12.55%)
 
 # SMALL FOR GESTATIONAL AGE (SGA)
 # A.K.A. "small rats"
-birth_weight[birth_weight.bwght < 2500]
+lowweight = birth_weight[birth_weight.bwght < 2500]
 # 92 SGAs (5.02%)
+
+# Very low weight
+vlow = birth_weight[birth_weight.bwght < 1500]
+
+print('normal')
+nweight.describe()
+
+print('hi')
+hiweight.describe()
+
+print('low')
+lowweight.describe()
+
+print('very low')
+vlow.describe()
+
 
 ## Variable distributions:
 for col in df.columns:
