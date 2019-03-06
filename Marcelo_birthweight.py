@@ -49,6 +49,7 @@ Purpose:
 ###############################################################################
 ##### LIBRARIES AND SET UP OF FILE 
 ###############################################################################
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -111,23 +112,35 @@ birth_weight[birth_weight.bwght > 4000]
 birth_weight[birth_weight.bwght < 2500]
 # 92 SGAs (5.02%)
 
+## Variable distributions:
+for col in df.columns:
+    x = df[col]
+    plt.title("Variable: "+col)
+    plt.hist(x)
+    plt.show()
 
 ## Correlation between variables:
 
 # temp DF - drop NAs:
 df = birth_weight.dropna()
 
-df.corr()
-
-
+# adding jitter to better visualize data:
+def rand_jitter(arr):
+    stdev = .01*(max(arr)-min(arr))
+    return arr + np.random.randn(len(arr)) * stdev
 
 for col in df.columns:
     x = df[col]
     y = df['bwght']
-    print("#### x VARIABLE:",col)
-    print("#### y VARIABLE: bwght")
+    #print("#### x VARIABLE:",col)
+    #print("#### y VARIABLE: bwght")
     #sns.stripplot(x,y,jitter=True)
-    plt.scatter(x, y)
+    plt.scatter(rand_jitter(x), y)
+    plt.xlabel(col)
+    plt.ylabel("bwght")
     plt.axhline(2500,color='blue')
     plt.axhline(4000,color='red')
     plt.show()
+
+# Correlation matrix:
+df.corr()
