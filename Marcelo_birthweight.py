@@ -127,6 +127,15 @@ lowweight.describe()
 print('very low')
 vlow.describe()
 
+
+##Class of mothers with more than 14 prenatal visits:
+high_risk = birth_weight[birth_weight.npvis > 14]
+high_risk.describe()
+plt.hist(high_risk.bwght)
+plt.show()
+plt.boxplot(high_risk.bwght)
+plt.show()
+
 # Tracking mothers with high risk:
 high_risk = birth_weight[birth_weight.npvis > 14]
 high_risk.describe()
