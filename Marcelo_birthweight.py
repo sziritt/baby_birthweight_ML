@@ -57,6 +57,8 @@ import matplotlib.pyplot as plt
 file = 'birthweight_feature_set.xlsx'
 birth_weight = pd.read_excel(file)
 
+# temp DF - drop NAs:
+df = birth_weight.dropna()
 
 ###############################################################################
 ##### EXPLORATORY ANALYSIS
@@ -154,10 +156,6 @@ plt.show()
 # Tracking mothers with high risk:
 high_risk = birth_weight[birth_weight.npvis > 14]
 high_risk.describe()
-
-
-# temp DF - drop NAs:
-df = birth_weight.dropna()
 
 
 ## Variable distributions:
