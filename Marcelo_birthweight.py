@@ -57,7 +57,7 @@ import matplotlib.pyplot as plt
 file = 'birthweight_feature_set.xlsx'
 birth_weight = pd.read_excel(file)
 
-birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
+
 ###############################################################################
 ##### EXPLORATORY ANALYSIS
 ###############################################################################
@@ -98,6 +98,20 @@ for col in birth_weight:
         birth_weight['m_'+col] = birth_weight[col].isnull().astype(int)
 
 
+# Filling NAs in 'npvis' , 'meduc' and 'feduc'
+
+birth_weight.npvis = birth_weight.npvis.fillna(birth_weight.npvis.median)
+birth_weight.meduc = birth_weight.meduc.fillna(birth_weight.meduc.median)
+birth_weight.feduc = birth_weight.feduc.fillna(birth_weight.feduc.median)
+
+# Rechecking NAs:
+print(birth_weight.isnull().sum()) 
+
+##############################################################
+# EXPLORATORY DATA ANALYSIS
+
+# New variable 'visgap' = difference between # prenatal visits and prenatal month of start
+birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
 
 # Normal weight (between 2500 and 4000)
 nweight = birth_weight[(birth_weight.bwght <= 4000) & (birth_weight.bwght >= 2500)]
@@ -175,8 +189,10 @@ for col in df.columns:
     plt.show()
 
 # Correlations:
+df.corr()
 df.corr()['bwght'].sort_values()
 
+# Paiwise relationship:
 
 
 #########################################
@@ -208,3 +224,27 @@ print("R^2: {}".format(reg_all.score(X_test, y_test)))
 rmse = np.sqrt(mean_squared_error(y_test , y_pred))
 print("Root Mean Squared Error: {}".format(rmse))
 
+#########################################
+# MODEL 2 - KNN 
+
+from sklearn.neighbors import KNeighborsRegressor
+
+# Creating a regressor object
+knn_reg = KNeighborsRegressor(algorithm = 'auto',
+                              n_neighbors = 20)
+
+
+
+# Checking the type of this new object
+type(knn_reg)
+
+
+# Teaching (fitting) the algorithm based on the training data
+knn_reg.fit(X_train, y_train)
+
+# Calling the score method, which compares the predicted values to the actual values
+
+y_score = knn_reg.score(X_test, y_test)
+
+# The score is directly comparable to R-Square
+print(y_score)
