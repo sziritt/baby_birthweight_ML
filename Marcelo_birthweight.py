@@ -98,7 +98,7 @@ for col in birth_weight:
         birth_weight['m_'+col] = birth_weight[col].isnull().astype(int)
 
 
-# Filling NAs in 'npvis' , 'meduc' and 'feduc'
+# Filling NAs in 'npvis' , 'meduc' and 'feduc' with the MEDIAN
 
 birth_weight.npvis = birth_weight.npvis.fillna(birth_weight.npvis.median)
 birth_weight.meduc = birth_weight.meduc.fillna(birth_weight.meduc.median)
