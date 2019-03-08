@@ -57,27 +57,6 @@ import matplotlib.pyplot as plt
 file = 'birthweight_feature_set.xlsx'
 birth_weight = pd.read_excel(file)
 
-# temp DF - drop NAs:
-df = birth_weight.dropna()
-
-###############################################################################
-##### EXPLORATORY ANALYSIS
-###############################################################################
-# Column names
-birth_weight.columns
-
-# Displaying the first rows of the DataFrame
-print(birth_weight.head())
-
-# Dimensions of the DataFrame
-birth_weight.shape
-
-# Information about each variable
-birth_weight.info()
-
-# Descriptive statistics
-birth_weight.describe().round(2)
-
 ###############################################################################
 ##### MISSING VALUES
 ###############################################################################
@@ -109,8 +88,26 @@ birth_weight.feduc = birth_weight.feduc.fillna(birth_weight.feduc.median())
 # Rechecking NAs:
 print(birth_weight.isnull().sum()) 
 
-##############################################################
-# EXPLORATORY DATA ANALYSIS
+# temp DF - drop NAs (if any):
+df = birth_weight.dropna()
+
+###############################################################################
+##### EXPLORATORY ANALYSIS
+###############################################################################
+# Column names
+birth_weight.columns
+
+# Displaying the first rows of the DataFrame
+print(birth_weight.head())
+
+# Dimensions of the DataFrame
+birth_weight.shape
+
+# Information about each variable
+birth_weight.info()
+
+# Descriptive statistics
+birth_weight.describe().round(2)
 
 # New variable 'visgap' = difference between # prenatal visits and prenatal month of start
 birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
@@ -122,12 +119,16 @@ nweight = birth_weight[(birth_weight.bwght <= 4000) & (birth_weight.bwght >= 250
 # A.K.A. "giant babies"
 hiweight = birth_weight[birth_weight.bwght > 4000]
 
+
+
 #230 LGAs (12.55%)
 
 # SMALL FOR GESTATIONAL AGE (SGA)
 # A.K.A. "small rats"
 lowweight = birth_weight[birth_weight.bwght < 2500]
 # 92 SGAs (5.02%)
+
+
 
 # Very low weight
 vlow = birth_weight[birth_weight.bwght < 1500]
@@ -192,6 +193,30 @@ df.corr()['bwght'].sort_values()
 
 # Paiwise relationship:
 
+#########################################
+# NEW VARIABLES - FEATURE ENGINEERING:
+
+# Creating binary variable 'smoker'
+
+birth_weight['smoker'] = (birth_weight.cigs > 0).astype('int')
+
+# Creating binary variable 'drinker'
+birth_weight['drinker'] = (birth_weight.drink > 0).astype('int')
+
+# Creating binary variable 'hirisk'
+birth_weight['hirisk'] = (birth_weight.npvis > 14).astype('int')
+
+# Creating binary variable 'oldmom'
+birth_weight['oldmom'] = (birth_weight.mage > 40).astype('int')
+
+# Creating binary variable 'olddad'
+birth_weight['olddad'] = (birth_weight.fage > 50).astype('int')
+
+# Creating binary variable 'mloweduc'
+birth_weight['mloweduc'] = (birth_weight.meduc < 14).astype('int')
+
+# Creating binary variable 'floweduc'
+birth_weight['mloweduc'] = (birth_weight.feduc < 14).astype('int')
 
 #########################################
 # MODEL ONE - LINEAR REGRESSION 
@@ -200,9 +225,12 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error 
 from sklearn.model_selection import train_test_split 
 
+# temp DF - drop NAs (if any):
+df = birth_weight.dropna()
+
 # Parameters X and y:
 
-X = df.drop(['omaps', 'fmaps','bwght'],axis=1)
+X = df.drop(['omaps', 'fmaps','bwght','lga','sga','omaps', 'fmaps','m_meduc','m_npvis','m_feduc'],axis=1)
 y = df.bwght
 
 # Create training and test sets
