@@ -166,6 +166,12 @@ for col in df.columns:
     plt.hist(x)
     plt.show()
 
+for col in df.columns:
+    x = df[col]
+    plt.title("Variable: "+col)
+    plt.boxplot(x,vert=False)
+    plt.show()
+    
 ## Correlation between variables:
 
 
@@ -195,28 +201,28 @@ df.corr()['bwght'].sort_values()
 
 #########################################
 # NEW VARIABLES - FEATURE ENGINEERING:
+#outliers:
 
-# Creating binary variable 'smoker'
+# Creating binary variable 'out_drink'
+birth_weight['out_drink'] = (birth_weight.drink > 12).astype('int')
 
-birth_weight['smoker'] = (birth_weight.cigs > 0).astype('int')
+# Creating binary variable 'lo_out_npvis'
+birth_weight['lo_out_npvis'] = (birth_weight.npvis < 7).astype('int')
 
-# Creating binary variable 'drinker'
-birth_weight['drinker'] = (birth_weight.drink > 0).astype('int')
+# Creating binary variable 'hi_out_npvis'
+birth_weight['hi_out_npvis'] = (birth_weight.npvis > 15).astype('int')
 
-# Creating binary variable 'hirisk'
-birth_weight['hirisk'] = (birth_weight.npvis > 14).astype('int')
+# Creating binary variable 'out_mage'
+birth_weight['out_mage'] = (birth_weight.mage > 60).astype('int')
 
-# Creating binary variable 'oldmom'
-birth_weight['oldmom'] = (birth_weight.mage > 40).astype('int')
+# Creating binary variable 'out_fage'
+birth_weight['out_fage'] = (birth_weight.fage > 55).astype('int')
 
-# Creating binary variable 'olddad'
-birth_weight['olddad'] = (birth_weight.fage > 50).astype('int')
+# Creating binary variable 'out_educ'
+birth_weight['out_feduc'] = (birth_weight.feduc < 7).astype('int')
 
-# Creating binary variable 'mloweduc'
-birth_weight['mloweduc'] = (birth_weight.meduc < 14).astype('int')
-
-# Creating binary variable 'floweduc'
-birth_weight['mloweduc'] = (birth_weight.feduc < 14).astype('int')
+# Creating binary variable 'out_monpre'
+birth_weight['out_monpre'] = (birth_weight.monpre > 4).astype('int')
 
 #########################################
 # RESCALING VARIABLES:
@@ -239,7 +245,7 @@ df = birth_weight.dropna()
 
 # Parameters X and y:
 
-X = df.drop(['omaps', 'fmaps','bwght','lga','sga','omaps', 'fmaps','m_meduc','m_npvis','m_feduc'],axis=1)
+X = df.drop(['omaps', 'fmaps','bwght','omaps', 'fmaps','m_meduc','m_npvis','m_feduc'],axis=1)
 y = df.bwght
 
 # Create training and test sets
@@ -311,12 +317,13 @@ df['moth'] +
 df['fwhte'] +
 df['fblck'] +
 df['foth'] +
-df['smoker'] +
-df['drinker'] +
-df['hirisk'] +
-df['oldmom'] +
-df['olddad'] +
-df['mloweduc'] """,
+df['out_drink'] +
+df['lo_out_npvis'] +
+df['hi_out_npvis'] +
+df['out_mage'] +
+df['out_fage'] +
+df['out_feduc'] +
+df['out_monpre'] """,
                         data = df)
 
 
