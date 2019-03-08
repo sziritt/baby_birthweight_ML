@@ -274,3 +274,47 @@ y_score = knn_reg.score(X_test, y_test)
 
 # The score is directly comparable to R-Square
 print(y_score)
+
+
+
+###################################################
+# APPROACH USING STATSMODELS - LINEAR REGRESSION
+
+import statsmodels.formula.api as smf 
+
+# Code to help building the variables to fit:
+# for x in X.columns: print("df['"+x+"'] +") 
+
+
+# Building a Regression Base
+lm_babyweight = smf.ols(formula = """bwght ~ df['mage'] +
+df['meduc'] +
+df['monpre'] +
+df['npvis'] +
+df['fage'] +
+df['feduc'] +
+df['cigs'] +
+df['drink'] +
+df['male'] +
+df['mwhte'] +
+df['mblck'] +
+df['moth'] +
+df['fwhte'] +
+df['fblck'] +
+df['foth'] +
+df['smoker'] +
+df['drinker'] +
+df['hirisk'] +
+df['oldmom'] +
+df['olddad'] +
+df['mloweduc'] """,
+                        data = df)
+
+
+
+# Fitting Results
+results = lm_babyweight.fit()
+
+
+# Printing Summary Statistics
+print(results.summary())
