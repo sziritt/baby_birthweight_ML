@@ -219,6 +219,15 @@ birth_weight['mloweduc'] = (birth_weight.meduc < 14).astype('int')
 birth_weight['mloweduc'] = (birth_weight.feduc < 14).astype('int')
 
 #########################################
+# RESCALING VARIABLES:
+
+# Function to normalize column data (rescale from 0 to 1) in df:
+# Usage instructions - To normalize column 'mage' >>> normalize('mage')
+normalize = lambda x : (df[x]-df[x].min())/df[x].max()
+
+
+
+#########################################
 # MODEL ONE - LINEAR REGRESSION 
 
 from sklearn.linear_model import LinearRegression 
@@ -318,3 +327,26 @@ results = lm_babyweight.fit()
 
 # Printing Summary Statistics
 print(results.summary())
+
+
+
+# LINEAR REGRESSION - CLEANER MODEL V.2:
+lm_babyweight2 = smf.ols(formula = """bwght ~ df['mage'] +
+df['cigs'] +
+df['drink'] +
+df['mwhte'] +
+df['mblck'] +
+df['moth'] +
+df['fwhte'] +
+df['fblck'] +
+df['foth']
+ """,
+                        data = df)
+
+results2 = lm_babyweight2.fit()
+
+
+# Printing Summary Statistics
+print(results2.summary())
+
+# R-squared reduced...
