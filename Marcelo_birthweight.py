@@ -62,17 +62,7 @@ birth_weight = pd.read_excel(file)
 ###############################################################################
 print(birth_weight.isnull().sum()) 
 
-""" 9 cols with missign values:
-meduc 30
-monpre 5
-npvis 68
-fage 6
-feduc 47
-omaps 3
-fmaps 3
-cigs 110
-drink 115
-"""
+
 # Flagging missing values
 for col in birth_weight:
     if birth_weight[col].isnull().astype(int).sum() > 0:
@@ -88,12 +78,16 @@ birth_weight.feduc = birth_weight.feduc.fillna(birth_weight.feduc.median())
 # Rechecking NAs:
 print(birth_weight.isnull().sum()) 
 
-# temp DF - drop NAs (if any):
-df = birth_weight.dropna()
-
 ###############################################################################
 ##### EXPLORATORY ANALYSIS
 ###############################################################################
+
+# class of baby weight (REMOVE FROM MODEL TRAIN-TEST!):
+# low, normal, high weight
+birth_weight['wclass'] = 'normal'
+birth_weight.loc[birth_weight.bwght < 2500,'wclass'] = 'low'
+birth_weight.loc[birth_weight.bwght > 4000,'wclass'] = 'hi'
+
 # Column names
 birth_weight.columns
 
@@ -109,8 +103,6 @@ birth_weight.info()
 # Descriptive statistics
 birth_weight.describe().round(2)
 
-# New variable 'visgap' = difference between # prenatal visits and prenatal month of start
-birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
 
 # Normal weight (between 2500 and 4000)
 nweight = birth_weight[(birth_weight.bwght <= 4000) & (birth_weight.bwght >= 2500)]
@@ -118,7 +110,7 @@ nweight = birth_weight[(birth_weight.bwght <= 4000) & (birth_weight.bwght >= 250
 # LARGE FOR GESTATIONAL AGE (LGA)
 # A.K.A. "giant babies"
 hiweight = birth_weight[birth_weight.bwght > 4000]
-
+hiweight
 
 
 #230 LGAs (12.55%)
@@ -144,6 +136,8 @@ lowweight.describe()
 
 print('very low')
 vlow.describe()
+
+
 
 
 ##Class of mothers with more than 14 prenatal visits:
@@ -199,8 +193,29 @@ df.corr()['bwght'].sort_values()
 
 # Paiwise relationship:
 
+for col1 in range(0,len(df.columns)):
+    x = df.columns[col1]
+    for col2 in range(0,len(df.columns)):
+        y = df.columns[col2]
+        if x != 'wclass':
+            if y != 'wclass':
+                sns.lmplot(x,y,data=df,hue='wclass')
+                plt.show()
+
+    
 #########################################
 # NEW VARIABLES - FEATURE ENGINEERING:
+
+# Creating binary variable 'drinker'
+birth_weight['drinker'] = (birth_weight.drink > 0).astype('int')
+
+# Creating binary variable 'smoker'
+birth_weight['smoker'] = (birth_weight.cigs > 0).astype('int')
+
+birth_weight['trasher'] = birth_weight.drinker+birth_weight.smoker
+
+birth_weight.loc[birth_weight.trasher == 2,'trasher'] = 4
+
 #outliers:
 
 # Creating binary variable 'out_drink'
@@ -218,19 +233,35 @@ birth_weight['out_mage'] = (birth_weight.mage > 60).astype('int')
 # Creating binary variable 'out_fage'
 birth_weight['out_fage'] = (birth_weight.fage > 55).astype('int')
 
-# Creating binary variable 'out_educ'
+# Creating binary variable 'out_feduc'
 birth_weight['out_feduc'] = (birth_weight.feduc < 7).astype('int')
 
 # Creating binary variable 'out_monpre'
 birth_weight['out_monpre'] = (birth_weight.monpre > 4).astype('int')
 
+# New variable 'visgap' = diff between # prenatal visits & prenatal month of start
+birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
+
+df = birth_weight
+
 #########################################
-# RESCALING VARIABLES:
 
-# Function to normalize column data (rescale from 0 to 1) in df:
-# Usage instructions - To normalize column 'mage' >>> normalize('mage')
-normalize = lambda x : (df[x]-df[x].min())/df[x].max()
+#########
+## K-means clusters
 
+from sklearn.cluster import KMeans
+
+data_for_cluster = birth_weight.drop(['omaps','fmaps','bwght'],axis=1)
+
+kmeans = KMeans(n_clusters=6, random_state=0).fit(data_for_cluster)
+
+# Check clusters
+# kmeans.labels_
+
+# assign new column:
+clusters = pd.get_dummies(kmeans.labels_,drop_first=True)
+clusters.columns = ['group1','group2','group3','group4','group5']
+df = pd.concat([df,clusters],axis=1)
 
 
 #########################################
@@ -240,8 +271,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error 
 from sklearn.model_selection import train_test_split 
 
-# temp DF - drop NAs (if any):
-df = birth_weight.dropna()
 
 # Parameters X and y:
 
@@ -249,7 +278,7 @@ X = df.drop(['omaps', 'fmaps','bwght','omaps', 'fmaps','m_meduc','m_npvis','m_fe
 y = df.bwght
 
 # Create training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 # Create the regressor: reg_all
 reg_all = LinearRegression()
@@ -453,5 +482,91 @@ def display_plot(cv_scores, cv_scores_std):
 
 
 display_plot(ridge_scores, ridge_scores_std)
+
+
+##################################################
+# POLYNOMIAL REGRESSION
+
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn import linear_model
+
+poly = PolynomialFeatures(degree=1)
+X_ = poly.fit_transform(X)
+X_test_ = poly.fit_transform(X_test)
+
+# Instantiate
+lg = LinearRegression()
+
+# Fit
+lg.fit(X_, y)
+
+# Calling the score method, which compares the predicted values to the actual values
+
+y_score = ridge.score(X_test, y_test)
+
+# The score is directly comparable to R-Square
+print(y_score)
+
+###################################################
+# XGBOOST
+
+import xgboost as xgb
+from sklearn.metrics import mean_squared_error
+import pandas as pd
+import numpy as np
+
+xg_reg = xgb.XGBRegressor(objective ='reg:linear', colsample_bytree = 0.3, learning_rate = 0.1,
+                max_depth = 5, alpha = 1, n_estimators = 10)
+
+xg_reg.fit(X_train,y_train)
+
+# Calling the score method, which compares the predicted values to the actual values
+
+predicted = xg_reg.predict(X_test)
+residuals = np.array(y_test) - predicted
+
+y_test_mean = np.mean(y_test)
+# Calculate total sum of squares
+tss =  sum((y_test - y_test_mean)**2 )
+# Calculate residual sum of squares
+rss =  (residuals**2).sum()
+# Calculate R-squared
+rsq  =  1 - (rss/tss)
+cat('The R-square of the test data is ', round(rsq,3), '\n')
+
+
+
+
+
+##########################################################
+# SVR
+
+from sklearn.svm import SVR
+
+clf = SVR(kernel='linear',gamma='auto')
+clf.fit(X_train, y_train) 
+
+# Calling the score method, which compares the predicted values to the actual values
+
+y_score = clf.score(X_test, y_test)
+
+# The score is directly comparable to R-Square
+print(y_score)
+
+
+from sklearn import linear_model
+
+clf = linear_model.SGDRegressor(max_iter=1000, tol=1e-3)
+
+clf.fit(X_train, y_train) 
+
+# Calling the score method, which compares the predicted values to the actual values
+
+y_score = clf.score(X_test, y_test)
+
+# The score is directly comparable to R-Square
+print(y_score)
+
+
 
 
