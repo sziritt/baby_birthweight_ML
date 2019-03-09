@@ -218,25 +218,27 @@ birth_weight.loc[birth_weight.trasher == 2,'trasher'] = 4
 
 #outliers:
 
-# Creating binary variable 'out_drink'
+# INCLUDE MOTHER´S AGE > 67
+
+# Creating binary variable 'out_drink' # original=12
 birth_weight['out_drink'] = (birth_weight.drink > 12).astype('int')
 
-# Creating binary variable 'lo_out_npvis'
+# Creating binary variable 'lo_out_npvis' # original=7
 birth_weight['lo_out_npvis'] = (birth_weight.npvis < 7).astype('int')
 
-# Creating binary variable 'hi_out_npvis'
+# Creating binary variable 'hi_out_npvis' # original=15
 birth_weight['hi_out_npvis'] = (birth_weight.npvis > 15).astype('int')
 
-# Creating binary variable 'out_mage'
+# Creating binary variable 'out_mage' # original=60
 birth_weight['out_mage'] = (birth_weight.mage > 60).astype('int')
 
-# Creating binary variable 'out_fage'
+# Creating binary variable 'out_fage' # original=55
 birth_weight['out_fage'] = (birth_weight.fage > 55).astype('int')
 
-# Creating binary variable 'out_feduc'
+# Creating binary variable 'out_feduc' # original=7
 birth_weight['out_feduc'] = (birth_weight.feduc < 7).astype('int')
 
-# Creating binary variable 'out_monpre'
+# Creating binary variable 'out_monpre' # original=4
 birth_weight['out_monpre'] = (birth_weight.monpre > 4).astype('int')
 
 # New variable 'visgap' = diff between # prenatal visits & prenatal month of start
@@ -244,6 +246,23 @@ birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
 
 df = birth_weight
 
+#####################
+# Adding normalized columns for ['mage','meduc','monpre','npvis','fage','feduc','cigs','drink']
+
+normalize = lambda var : (birth_weight[var]-min(birth_weight[var]))/(max(birth_weight[var])-min(birth_weight[var]))
+
+standardize = lambda var : (birth_weight[var]-birth_weight[var].mean())/birth_weight[var].std()
+
+
+cont_vars = ['mage','meduc','monpre','npvis','fage','feduc'] #,'cigs','drink']
+
+for col in cont_vars:
+    #birth_weight['norm_'+col] = normalize(col)
+    #birth_weight['std_'+col] = standardize(col)
+    birth_weight['log_'+col] = np.log(birth_weight[col])
+    
+
+df = birth_weight
 #########################################
 
 #########
@@ -396,8 +415,8 @@ print(results2.summary())
 # Import Lasso
 from sklearn.linear_model import Lasso
 
-# Instantiate a lasso regressor: lasso
-lasso = Lasso(alpha=0.005,normalize=True)
+# Instantiate a lasso regressor: lasso # original lasso w.o. normalized data 0.005
+lasso = Lasso(alpha=0.855,normalize=True,max_iter=100000)
 
 # Fit the regressor to the data
 lasso.fit(X, y)
@@ -438,7 +457,7 @@ ridge_scores_std = []
 # Create a ridge regressor: ridge
 ridge = Ridge(normalize=True)
 
-ridge.alpha = 0.005
+ridge.alpha = 5
 
 ridge.fit(X, y)
 
@@ -502,7 +521,7 @@ lg.fit(X_, y)
 
 # Calling the score method, which compares the predicted values to the actual values
 
-y_score = ridge.score(X_test, y_test)
+y_score = lg.score(X_test_, y_test)
 
 # The score is directly comparable to R-Square
 print(y_score)
@@ -543,7 +562,7 @@ cat('The R-square of the test data is ', round(rsq,3), '\n')
 
 from sklearn.svm import SVR
 
-clf = SVR(kernel='linear',gamma='auto')
+clf = SVR(kernel='linear',C=1.179)
 clf.fit(X_train, y_train) 
 
 # Calling the score method, which compares the predicted values to the actual values
@@ -570,3 +589,41 @@ print(y_score)
 
 
 
+##################################
+# comparing results to evaluate model
+
+lasso_predictions = pd.DataFrame(lasso.predict(X))
+
+lasso_predictions.columns = ['lasso_results']
+
+
+results = pd.concat([df,lasso_predictions],axis=1)
+
+results.to_excel('lasso_results.xls')
+
+
+
+
+
+
+
+
+#########################################
+# ELASTIC NET MODEL
+
+from sklearn.linear_model import ElasticNet
+
+regr = ElasticNet(random_state=0)
+
+regr.alpha = 1.25
+
+regr.l1_ratio = 0.65
+
+regr.fit(X_train,y_train)
+
+# Calling the score method, which compares the predicted values to the actual values
+
+y_score = regr.score(X_test, y_test)
+
+# The score is directly comparable to R-Square
+print(y_score)
