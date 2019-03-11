@@ -187,15 +187,28 @@ factors = pd.DataFrame(X_transformed,columns=factornames)
 
 df = pd.concat([df,factors],axis=1)
 
+##############################################
+# Classes of weights
+
+#(REMOVE FROM MODEL TRAIN-TEST!):
+
+# low, normal, high weight
+
+df['wclass'] = 'norm_weight'
+df.loc[df.bwght < 2500,'wclass'] = 'lo_weight'
+df.loc[df.bwght > 4000,'wclass'] = 'hi_weight'
+
+weights = pd.get_dummies(df['wclass'],drop_first=False)
+df = pd.concat([df,weights],axis=1)
+df = df.drop('wclass',axis=1)
+
+
+
 ###############################################################################
 ##### EXPLORATORY ANALYSIS
 ###############################################################################
 
-# class of baby weight (REMOVE FROM MODEL TRAIN-TEST!):
-# low, normal, high weight
-birth_weight['wclass'] = 'normal'
-birth_weight.loc[birth_weight.bwght < 2500,'wclass'] = 'low'
-birth_weight.loc[birth_weight.bwght > 4000,'wclass'] = 'hi'
+
 
 # Column names
 birth_weight.columns
@@ -777,3 +790,6 @@ y_pred = bayes_reg.predict(X_test)
 y_score_bayes_reg = bayes_reg.score(X_test, y_test)
 
 print(y_score_bayes_reg)
+
+
+
