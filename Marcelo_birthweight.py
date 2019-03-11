@@ -78,6 +78,115 @@ birth_weight.feduc = birth_weight.feduc.fillna(birth_weight.feduc.median())
 # Rechecking NAs:
 print(birth_weight.isnull().sum()) 
 
+
+
+#########################################
+# NEW VARIABLES - FEATURE ENGINEERING:
+
+# Creating binary variable 'drinker'
+birth_weight['drinker'] = (birth_weight.drink > 0).astype('int')
+
+# Creating binary variable 'smoker'
+birth_weight['smoker'] = (birth_weight.cigs > 0).astype('int')
+
+birth_weight['trasher'] = birth_weight.drinker+birth_weight.smoker
+
+birth_weight.loc[birth_weight.trasher == 2,'trasher'] = 4
+
+#outliers:
+
+
+
+
+# Creating binary variable 'out_drink' # original=12
+birth_weight['out_drink'] = (birth_weight.drink > 8).astype('int')
+
+# Creating binary variable 'out_cigs' # original - no outliers?
+birth_weight['out_cigs'] = (birth_weight.cigs > 12).astype('int')
+
+# Creating binary variable 'lo_out_npvis' # original=7
+birth_weight['lo_out_npvis'] = (birth_weight.npvis < 7).astype('int')
+
+# Creating binary variable 'hi_out_npvis' # original=15
+birth_weight['hi_out_npvis'] = (birth_weight.npvis > 15).astype('int')
+
+# Creating binary variable 'out_mage' # original=60
+birth_weight['out_mage'] = (birth_weight.mage > 54).astype('int')
+
+# INCLUDE MOTHER´S AGE > 65
+# birth_weight['big_out_mage'] = (birth_weight.mage > 67).astype('int')*3 + 
+
+# Creating binary variable 'out_fage' # original=55
+birth_weight['out_fage'] = (birth_weight.fage > 55).astype('int')
+
+# Creating binary variable 'out_meduc' 
+# birth_weight['out_meduc'] = (birth_weight.meduc < 13).astype('int')
+
+
+# Creating binary variable 'out_feduc' # original=7
+birth_weight['out_feduc'] = (birth_weight.feduc < 7).astype('int')
+
+# Creating binary variable 'out_monpre' # original=4
+birth_weight['out_monpre'] = (birth_weight.monpre > 4).astype('int')
+
+# New variable 'visgap' = diff between # prenatal visits & prenatal month of start
+birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
+
+df = birth_weight
+
+#####################
+# Adding normalized columns for ['mage','meduc','monpre','npvis','fage','feduc','cigs','drink']
+
+normalize = lambda var : (birth_weight[var]-min(birth_weight[var]))/(max(birth_weight[var])-min(birth_weight[var]))
+
+standardize = lambda var : (birth_weight[var]-birth_weight[var].mean())/birth_weight[var].std()
+
+
+cont_vars = ['mage','meduc','monpre','npvis','fage','feduc'] #,'cigs','drink']
+
+for col in cont_vars:
+    #birth_weight['norm_'+col] = normalize(col)
+    #birth_weight['std_'+col] = standardize(col)
+    birth_weight['log_'+col] = np.log(birth_weight[col])
+    
+
+df = birth_weight
+#########################################
+
+#########
+## K-means clusters
+
+from sklearn.cluster import KMeans
+
+data_for_cluster = birth_weight.drop(['omaps','fmaps','bwght'],axis=1)
+
+kmeans = KMeans(n_clusters=3, random_state=0).fit(data_for_cluster) #orig=6
+
+# Check clusters
+# kmeans.labels_
+
+# assign new column:
+clusters = pd.get_dummies(kmeans.labels_,drop_first=False)
+clusters.columns = ['group1','group2','group3']#,'group4','group5']
+df = pd.concat([df,clusters],axis=1)
+
+##########################################
+# Factor Analysis
+
+from sklearn.decomposition import FactorAnalysis
+
+df_factor = df.drop('bwght',axis=1)
+
+transformer = FactorAnalysis(n_components=3, random_state=0)
+
+X_transformed = transformer.fit_transform(df_factor)
+
+factornames = ['factor1','factor2','factor3']
+
+factors = pd.DataFrame(X_transformed,columns=factornames)
+
+df = pd.concat([df,factors],axis=1)
+
 ###############################################################################
 ##### EXPLORATORY ANALYSIS
 ###############################################################################
@@ -203,85 +312,6 @@ for col1 in range(0,len(df.columns)):
                 plt.show()
 
     
-#########################################
-# NEW VARIABLES - FEATURE ENGINEERING:
-
-# Creating binary variable 'drinker'
-birth_weight['drinker'] = (birth_weight.drink > 0).astype('int')
-
-# Creating binary variable 'smoker'
-birth_weight['smoker'] = (birth_weight.cigs > 0).astype('int')
-
-birth_weight['trasher'] = birth_weight.drinker+birth_weight.smoker
-
-birth_weight.loc[birth_weight.trasher == 2,'trasher'] = 4
-
-#outliers:
-
-# INCLUDE MOTHER´S AGE > 67
-
-# Creating binary variable 'out_drink' # original=12
-birth_weight['out_drink'] = (birth_weight.drink > 12).astype('int')
-
-# Creating binary variable 'lo_out_npvis' # original=7
-birth_weight['lo_out_npvis'] = (birth_weight.npvis < 7).astype('int')
-
-# Creating binary variable 'hi_out_npvis' # original=15
-birth_weight['hi_out_npvis'] = (birth_weight.npvis > 15).astype('int')
-
-# Creating binary variable 'out_mage' # original=60
-birth_weight['out_mage'] = (birth_weight.mage > 60).astype('int')
-
-# Creating binary variable 'out_fage' # original=55
-birth_weight['out_fage'] = (birth_weight.fage > 55).astype('int')
-
-# Creating binary variable 'out_feduc' # original=7
-birth_weight['out_feduc'] = (birth_weight.feduc < 7).astype('int')
-
-# Creating binary variable 'out_monpre' # original=4
-birth_weight['out_monpre'] = (birth_weight.monpre > 4).astype('int')
-
-# New variable 'visgap' = diff between # prenatal visits & prenatal month of start
-birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
-
-df = birth_weight
-
-#####################
-# Adding normalized columns for ['mage','meduc','monpre','npvis','fage','feduc','cigs','drink']
-
-normalize = lambda var : (birth_weight[var]-min(birth_weight[var]))/(max(birth_weight[var])-min(birth_weight[var]))
-
-standardize = lambda var : (birth_weight[var]-birth_weight[var].mean())/birth_weight[var].std()
-
-
-cont_vars = ['mage','meduc','monpre','npvis','fage','feduc'] #,'cigs','drink']
-
-for col in cont_vars:
-    #birth_weight['norm_'+col] = normalize(col)
-    #birth_weight['std_'+col] = standardize(col)
-    birth_weight['log_'+col] = np.log(birth_weight[col])
-    
-
-df = birth_weight
-#########################################
-
-#########
-## K-means clusters
-
-from sklearn.cluster import KMeans
-
-data_for_cluster = birth_weight.drop(['omaps','fmaps','bwght'],axis=1)
-
-kmeans = KMeans(n_clusters=6, random_state=0).fit(data_for_cluster)
-
-# Check clusters
-# kmeans.labels_
-
-# assign new column:
-clusters = pd.get_dummies(kmeans.labels_,drop_first=True)
-clusters.columns = ['group1','group2','group3','group4','group5']
-df = pd.concat([df,clusters],axis=1)
-
 
 #########################################
 # MODEL ONE - LINEAR REGRESSION 
@@ -293,14 +323,17 @@ from sklearn.model_selection import train_test_split
 
 # Parameters X and y:
 
-X = df.drop(['omaps', 'fmaps','bwght','omaps', 'fmaps','m_meduc','m_npvis','m_feduc'],axis=1)
+X = df.drop(['omaps', 'fmaps','bwght','omaps', 'fmaps','m_meduc','m_npvis','m_feduc','group3'],axis=1)
 y = df.bwght
+
+
+#################################
 
 # Create training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 # Create the regressor: reg_all
-reg_all = LinearRegression()
+reg_all = LinearRegression(normalize=False)
 
 # Fit the regressor to the training data
 reg_all.fit(X_train,y_train)
@@ -320,7 +353,7 @@ from sklearn.neighbors import KNeighborsRegressor
 
 # Creating a regressor object
 knn_reg = KNeighborsRegressor(algorithm = 'auto',
-                              n_neighbors = 20)
+                              n_neighbors = 3)
 
 
 
@@ -419,7 +452,7 @@ from sklearn.linear_model import Lasso
 lasso = Lasso(alpha=0.855,normalize=True,max_iter=100000)
 
 # Fit the regressor to the data
-lasso.fit(X, y)
+lasso.fit(X_train, y_train)
 
 # Calling the score method, which compares the predicted values to the actual values
 
@@ -428,11 +461,24 @@ y_score = lasso.score(X_test, y_test)
 # The score is directly comparable to R-Square
 print(y_score)
 
+# Predict on the test data: y_pred
+y_pred = lasso.predict(X_test)
+# Compute and print R^2 and RMSE
+print("R^2: {}".format(lasso.score(X_test, y_test)))
+rmse = np.sqrt(mean_squared_error(y_test , y_pred))
+print("Root Mean Squared Error: {}".format(rmse))
+
+
 #####
 # Compute and print the coefficients
 lasso_coef = lasso.coef_
+# Variables + coef table:
+var_coef = pd.DataFrame({'var':X.columns,'coef':lasso_coef})
+
 
 print(lasso_coef)
+
+
 
 # Plot the coefficients:
 # 
@@ -445,21 +491,34 @@ plt.show()
 ######################################################
 # RIDGE REGRESSION MODEL
 
+# Model finetuning (Run code in Lasso model first)
+drop_vars = []
+for val in var_coef.loc[var_coef.coef ==0,'var'].values: drop_vars.append(val)
+
+# Parameters X and y:
+
+X = X.drop(drop_vars,axis=1)
+y = df.bwght
+
+
+#################################
+
+# Create training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
+
+
 # Import necessary modules
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import cross_val_score
 
-# Setup the array of alphas and lists to store scores
-alpha_space = np.logspace(-4, 0, 50)
-ridge_scores = []
-ridge_scores_std = []
+
 
 # Create a ridge regressor: ridge
 ridge = Ridge(normalize=True)
 
-ridge.alpha = 5
+ridge.alpha = 0.75
 
-ridge.fit(X, y)
+ridge.fit(X_train, y_train)
 
 # Calling the score method, which compares the predicted values to the actual values
 
@@ -467,6 +526,22 @@ y_score = ridge.score(X_test, y_test)
 
 # The score is directly comparable to R-Square
 print(y_score)
+
+# Predict on the test data: y_pred
+y_pred = ridge.predict(X_test)
+# Compute and print R^2 and RMSE
+print("R^2: {}".format(ridge.score(X_test, y_test)))
+rmse = np.sqrt(mean_squared_error(y_test , y_pred))
+print("Root Mean Squared Error: {}".format(rmse))
+
+
+###################
+# ALPHA TESTING
+
+# Setup the array of alphas and lists to store scores
+alpha_space = np.logspace(-4, 0, 50)
+ridge_scores = []
+ridge_scores_std = []
 
 # Compute scores over range of alphas
 for alpha in alpha_space:
@@ -509,15 +584,16 @@ display_plot(ridge_scores, ridge_scores_std)
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn import linear_model
 
-poly = PolynomialFeatures(degree=1)
+poly = PolynomialFeatures(degree=4)
 X_ = poly.fit_transform(X)
 X_test_ = poly.fit_transform(X_test)
+X_train_ = poly.fit_transform(X_train)
 
 # Instantiate
 lg = LinearRegression()
 
 # Fit
-lg.fit(X_, y)
+lg.fit(X_train_, y_train)
 
 # Calling the score method, which compares the predicted values to the actual values
 
@@ -562,16 +638,26 @@ cat('The R-square of the test data is ', round(rsq,3), '\n')
 
 from sklearn.svm import SVR
 
-clf = SVR(kernel='linear',C=1.179)
-clf.fit(X_train, y_train) 
+svr = SVR(kernel='linear',C=1.179)
+svr.fit(X_train, y_train) 
 
 # Calling the score method, which compares the predicted values to the actual values
 
-y_score = clf.score(X_test, y_test)
+y_score = svr.score(X_test, y_test)
 
 # The score is directly comparable to R-Square
 print(y_score)
 
+# Predict on the test data: y_pred
+y_pred = svr.predict(X_test)
+# Compute and print R^2 and RMSE
+print("R^2: {}".format(svr.score(X_test, y_test)))
+rmse = np.sqrt(mean_squared_error(y_test , y_pred))
+print("Root Mean Squared Error: {}".format(rmse))
+
+
+##########################################
+# SGD
 
 from sklearn import linear_model
 
@@ -596,10 +682,12 @@ lasso_predictions = pd.DataFrame(lasso.predict(X))
 
 lasso_predictions.columns = ['lasso_results']
 
-
 results = pd.concat([df,lasso_predictions],axis=1)
 
-results.to_excel('lasso_results.xls')
+results['residuals'] = results['bwght'] - results['lasso_results']
+
+
+results.to_excel('lasso_results2.xls')
 
 
 
@@ -615,7 +703,7 @@ from sklearn.linear_model import ElasticNet
 
 regr = ElasticNet(random_state=0)
 
-regr.alpha = 1.25
+regr.alpha = 1.9
 
 regr.l1_ratio = 0.65
 
@@ -627,3 +715,65 @@ y_score = regr.score(X_test, y_test)
 
 # The score is directly comparable to R-Square
 print(y_score)
+
+
+
+#########
+# Theil sen model
+
+
+from sklearn.linear_model import TheilSenRegressor # Theil Sen Regressor Model
+
+# Instantiate
+ts_reg = TheilSenRegressor(random_state = 508)
+
+# Fit
+ts_reg.fit(X_train, y_train)
+
+# Predict
+y_pred = ts_reg.predict(X_test)
+
+# Score
+y_score_ts = ts_reg.score(X_test, y_test)
+
+print(y_score_ts)
+
+#############
+# Regression tree
+
+from sklearn.tree import DecisionTreeRegressor # Regression trees
+
+# Instantiate
+tree_reg = DecisionTreeRegressor(criterion = 'mse',
+                                 min_samples_leaf = 14,
+                                 random_state = 508)
+
+# Fit
+tree_reg.fit(X_train, y_train)
+
+# Predict
+y_pred = tree_reg.predict(X_test)
+
+# Score
+y_score_tree = tree_reg.score(X_test, y_test)
+
+print(y_score_tree)
+
+
+
+########
+# Bayesian ridge
+
+from sklearn import linear_model
+
+bayes_reg = linear_model.BayesianRidge()
+
+bayes_reg.fit(X_train, y_train)
+
+# Predict
+y_pred = bayes_reg.predict(X_test)
+
+# Score
+y_score_bayes_reg = bayes_reg.score(X_test, y_test)
+
+print(y_score_bayes_reg)
