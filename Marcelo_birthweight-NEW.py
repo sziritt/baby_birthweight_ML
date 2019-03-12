@@ -132,7 +132,7 @@ birth_weight['out_feduc'] = (birth_weight.feduc < 7).astype('int')
 birth_weight['out_monpre'] = (birth_weight.monpre > 4).astype('int')
 
 # New variable 'visgap' = diff between # prenatal visits & prenatal month of start
-birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
+# birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
 
 # New variable 'mage_medu' = ratio mother's age and education
 birth_weight['mage_medu'] = birth_weight.mage/birth_weight.meduc
@@ -140,7 +140,19 @@ birth_weight['mage_medu'] = birth_weight.mage/birth_weight.meduc
 # New variable 'fage_fedu' = ratio father's age and education
 birth_weight['fage_fedu'] = birth_weight.fage/birth_weight.feduc
 
+# New variable 'cigs_mage' = force multiplier for drinking and age:
+# This means that older women who drink too much will be more penalized
+birth_weight['cigs_mage'] = birth_weight.cigs*birth_weight.mage
 
+# New variable 'drink_mage' = force multiplier for drinking and age:
+# This means that older women who drink too much will be more penalized
+birth_weight['drink_mage'] = birth_weight.drink*birth_weight.mage
+
+# New variable 'out_cigs_mage' = outlier of 'out_cigs_mage' (>590):
+birth_weight['out_cigs_mage'] = (birth_weight.monpre > 590).astype('int')
+
+# New variable 'out_drink_mage' = outlier of 'out_drink_mage' (>1250):
+birth_weight['out_drink_mage'] = (birth_weight.monpre > 1250).astype('int')
 
 df = birth_weight
 
@@ -218,6 +230,10 @@ weights = pd.get_dummies(df['wclass'],drop_first=False)
 df = pd.concat([df,weights],axis=1)
 
 df = df.drop('wclass',axis=1)
+
+birth_weight['wclass'] = 'norm_weight'
+birth_weight.loc[df.bwght < 2500,'wclass'] = 'lo_weight'
+birth_weight.loc[df.bwght > 4000,'wclass'] = 'hi_weight'
 
 
 
@@ -342,7 +358,32 @@ for col1 in range(0,len(df.columns)):
                 plt.savefig(col1+'_'+col2+'.png')
                 plt.show()
 
-    
+                
+################
+## PIVOT TABLES
+
+pivot_vals = ['mage',
+'meduc',
+'monpre',
+'npvis',
+'fage',
+'feduc',
+'cigs',
+'drink',
+'male',
+'mwhte',
+'mblck',
+'moth',
+'fwhte',
+'fblck',
+'foth',
+'bwght']
+
+table_mean = pd.pivot_table(birth_weight, values=pivot_vals, index='wclass',aggfunc=np.mean).round(2).iloc[[1,2,0],:]
+table_mean
+
+table_median = pd.pivot_table(birth_weight,values=pivot_vals, index='wclass',aggfunc=np.median).round(2).iloc[[1,2,0],:]
+table_median
 
 #########################################
 # MODEL ONE - LINEAR REGRESSION 
@@ -907,7 +948,8 @@ baby_data = df.loc[:,['log_mage',
                       'hi_out_npvis',
                       'norm_npvis',                  
                       'std_monpre',
-                      #'mage_medu'
+                      'cigs_mage',
+                      'drink_mage'
                       ]]
 baby_target = df.loc[:,'bwght']
 
@@ -1161,3 +1203,51 @@ plot_feature_importances(tree_full,
 
 features = pd.DataFrame({'var':baby_data.columns, 'coef':tree_full.feature_importances_})
 
+
+
+
+
+
+
+###########
+# LAST MODEL MAR-11TH
+# SCORE = 0.751
+
+baby_data = df.loc[:,['mage',
+                      'out_mage',
+                      'norm_fage',
+                      'log_feduc',
+                      'cigs',
+                      #'out_cigs',
+                      'smoker',
+                      'drink',
+                      'drinker',
+                      'trasher',
+                      #'male',
+                      
+                      'lo_out_npvis',
+                      'hi_out_npvis',
+                      'sq_npvis',                  
+                      #'std_monpre',
+                      'cigs_mage',
+                      'drink_mage'
+                      ]]
+baby_target = df.loc[:,'bwght']
+
+X1_train, X1_test, y1_train, y1_test = train_test_split(baby_data,baby_target, 
+                                                        test_size = 0.1, random_state=508)
+reg_all2 = LinearRegression()
+reg_all2.fit(X1_train,y1_train)
+
+# Compute and print R^2 and RMSE
+y1_pred_reg2 = reg_all2.predict(X1_test)
+print('R-Squared: ',reg_all2.score(X1_test,y1_test).round(3))
+rmse = np.sqrt(mean_squared_error(y1_test , y1_pred_reg2))
+print("Root Mean Squared Error: {}".format(rmse))
+
+
+
+
+birth_weight['risk'] = 0
+for value in enumerate(birth_weight['risk']):
+    if birth_weight['risk']
