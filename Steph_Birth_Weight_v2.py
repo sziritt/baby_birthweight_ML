@@ -120,28 +120,50 @@ mage (30-34) & fage (20-39) - standard 1
 mage (30-34) & fage (40-64) - high risk 2
 mage (35-44) & fage (35-39) - high risk 2
 mage (35-44) & fage (40-64) - highest risk 3
+else - highest risk 3
 """
-#create new col for combine ages
-#bith_weight['cage'] 
-if birth_weight.birth_weight['mage'] < 30:
-    if birth_weight.birth_weight['fage'] < 65:
-        birth_weight.birth_weight['cage'] = 1
-elif birth_weight.birth_weight['mage'] < 35:
-    if birth_weight.birth_weight['fage'] < 40:
-        birth_weight.birth_weight['cage'] = 1
-    elif birth_weight.birth_weight['fage'] < 65:
-        birth_weight.birth_weight['cage'] = 2
-elif birth_weight.birth_weight['mage'] < 45:
-    if birth_weight.birth_weight['fage'] < 40:
-        birth_weight.birth_weight['cage'] = 2
-    elif birth_weight.birth_weight['fage'] < 65:
-        birth_weight.birth_weight['cage'] = 3
+
+counter = 0
+birth_weight['cage'] = 0
+
+for value in birth_weight['mage']:
+    if value < 30:
+        if birth_weight.loc[counter, 'fage'] < 65:
+            birth_weight.loc[counter,'cage'] = 1
+        elif birth_weight.loc[counter,'fage'] >= 65:
+            birth_weight.loc[counter,'cage'] = 2      
+    elif value < 35:
+        if birth_weight.loc[counter, 'fage'] < 40:
+            birth_weight.loc[counter,'cage'] = 1
+        elif birth_weight.loc[counter,'fage'] < 65:
+            birth_weight.loc[counter,'cage'] = 2 
+        elif birth_weight.loc[counter,'fage'] >= 65:
+            birth_weight.loc[counter,'cage'] = 3
+    elif value < 45:
+        if birth_weight.loc[counter,'fage'] < 40:
+            birth_weight.loc[counter,'cage'] = 2 
+        elif birth_weight.loc[counter,'fage'] >= 40:
+            birth_weight.loc[counter,'cage'] = 3
+    else:
+        birth_weight.loc[counter,'cage'] = 3
+    counter+=1
+
+def rand_jitter(arr):
+    stdev = .01*(max(arr)-min(arr))
+    return arr + np.random.randn(len(arr)) * stdev
+
+x = birth_weight['cage']
+y = birth_weight['bwght']
+plt.scatter(rand_jitter(x), y)
+plt.xlabel('Combine ages')
+plt.ylabel("bwght")
+plt.axhline(2500,color='blue')
+plt.axhline(4000,color='red')
+plt.show()
 
 ###############################################################################
 ##### PRENATAL CARE AND VISITS
 ###############################################################################
-
-
 """
 Weeks 4 to 28: 1 prenatal visit a month 
     month 1-6 - 6 visits
@@ -152,16 +174,28 @@ Weeks 36 to 40: 1 prenatal visit every week
 
 Starting in month 1 = 14 visits
 
-month 1 - 14 - (9,14)
-month 2 - 13 - (8,13)
-month 3 - 12 - (7,12)
-month 4 - 11 - (6,11)
-month 5 - 10 - (5,10)
-month 6 - 8 - (4,8)
-month 7 - 6 - (3,6)
-month 8 - 4 - (2,4)
+month 1 - 14 - (9,15)
+month 2 - 13 - (8,14)
+month 3 - 12 - (7,13)
+month 4 - 11 - (6,12)
+month 5 - 10 - (5,11)
+month 6 - 8 - (4,9)
+month 7 - 6 - (3,7)
+month 8 - 4 - (2,5)
 
-"""        
+"""   
+counter = 0
+birth_weight['regular'] = 1
+
+for value in birth_weight['npvis']:
+    if (value > 9 & value < 15 & birth_weight.loc[counter,'monpre'] == 1):
+        birth_weight.loc[counter,'regular'] = 1
+
+        
+"""def evaluate(month, low, high):      
+     if birth_weight['npvis']
+
+evaluate(1,9,15)"""
 ###############################################################################
 ##### PLOTS - EXPLORATORY ANALYSIS
 ###############################################################################
