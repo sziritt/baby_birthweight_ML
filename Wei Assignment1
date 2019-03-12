@@ -61,7 +61,7 @@ health['old'] = health['mage'] >=36
 
 health['overwt'] = health['bwght'] >=4000
 
-health['lowwt'] = health['bwght'] >=2500
+health['lowwt'] = health['bwght'] <=2500
 
 
 
