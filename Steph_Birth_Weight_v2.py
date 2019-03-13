@@ -146,7 +146,7 @@ for value in birth_weight['mage']:
             birth_weight.loc[counter,'cage'] = 3
     else:
         birth_weight.loc[counter,'cage'] = 3
-    counter+=1
+    counter += 1
 
 def rand_jitter(arr):
     stdev = .01*(max(arr)-min(arr))
@@ -171,7 +171,6 @@ Weeks 28 to 36: 1 prenatal visit every 2 weeks
     month 6-8 - 4 visits
 Weeks 36 to 40: 1 prenatal visit every week
     month >8 - 4 visits
-
 Starting in month 1 = 14 visits
 
 month 1 - 14 - (9,15)
@@ -182,39 +181,120 @@ month 5 - 10 - (5,11)
 month 6 - 8 - (4,9)
 month 7 - 6 - (3,7)
 month 8 - 4 - (2,5)
-
 """   
 counter = 0
-birth_weight['regular'] = 1
+birth_weight['regular'] = 0
 
 for value in birth_weight['npvis']:
-    if (value > 9 & value < 15 & birth_weight.loc[counter,'monpre'] == 1):
-        birth_weight.loc[counter,'regular'] = 1
+    if birth_weight.loc[counter,'monpre'] == 1:
+        if (value >= 8 and value <= 15):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 2:
+        if (value >= 7 and value <= 14):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 3:
+        if (value >= 6 and value <= 13):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 4:
+        if (value >= 5 and value <= 12):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 5:
+        if (value >= 4 and value <= 11):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 6:
+        if (value >= 3 and value <= 9):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 7:
+        if (value >= 2 and value <= 7):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 8:
+        if (value >= 1 and value <= 5):
+            birth_weight.loc[counter,'regular'] = 1 
+    counter += 1
 
-        
-"""def evaluate(month, low, high):      
-     if birth_weight['npvis']
+x = birth_weight['regular']
+y = birth_weight['bwght']
+plt.scatter(rand_jitter(x), y)
+plt.xlabel('Regular visits')
+plt.ylabel("bwght")
+plt.axhline(2500,color='blue')
+plt.axhline(4000,color='red')
+plt.show()
 
-evaluate(1,9,15)"""
+birth_weight.corr()['bwght'].sort_values()
+
 ###############################################################################
-##### PLOTS - EXPLORATORY ANALYSIS
+##### 
 ###############################################################################
-# Gap between visits and prenatal care
-birth_weight['visgap'] = birth_weight.npvis-birth_weight.monpre
 
-##### Temp DF - drop NAs:
-df = birth_weight.dropna()
+###################################################
+# APPROACH USING STATSMODELS - LINEAR REGRESSION
 
-## Variable distributions:
-for col in df.columns:
-    x = df[col]
-    plt.title("Variable: "+col)
-    plt.hist(x)
-    plt.show()
+import statsmodels.formula.api as smf 
 
-# Loading Libraries
-import pandas as pd
-import statsmodels.formula.api as smf # regression modeling
+# Code to help building the variables to fit:
+# for x in X.columns: print("df['"+x+"'] +") 
+
+### OPTION 1 
+# Building a Regression Base
+lm_babyweight = smf.ols(formula = """bwght ~ birth_weight['mage'] +
+birth_weight['meduc'] +
+birth_weight['fage'] +
+birth_weight['feduc'] +
+birth_weight['monpre'] +
+birth_weight['npvis'] +
+birth_weight['cigs'] +
+birth_weight['drink'] +
+birth_weight['male'] +
+birth_weight['mwhte'] +
+birth_weight['mblck'] +
+birth_weight['moth'] +
+birth_weight['fwhte'] +
+birth_weight['fblck'] +
+birth_weight['foth'] +
+birth_weight['cage'] +
+birth_weight['regular'] """,
+                        data = birth_weight)
+
+# Fitting Results
+results = lm_babyweight.fit()
+
+# Printing Summary Statistics
+print(results.summary())
+
+### OPTION 2
+# Building a Regression Base with signiicant variables
+lm_babyweight2 = smf.ols(formula = """bwght ~ 
+birth_weight['cigs'] +
+birth_weight['drink'] +
+birth_weight['mwhte'] +
+birth_weight['mblck'] +
+birth_weight['moth'] +
+birth_weight['fwhte'] +
+birth_weight['fblck'] +
+birth_weight['foth'] +
+birth_weight['cage'] """,
+                        data = birth_weight)
+# Fitting Results
+results2 = lm_babyweight2.fit()
+
+# Printing Summary Statistics
+print(results2.summary())
+
+### OPTION 3
+# Building a Regression Base
+lm_babyweight3 = smf.ols(formula = """bwght ~ birth_weight['mage'] +
+birth_weight['cigs'] +
+birth_weight['drink'] """,
+                        data = birth_weight)
+# Fitting Results
+results3 = lm_babyweight3.fit()
+
+# Printing Summary Statistics
+print(results3.summary())
 
 
-df.corr()['meduc'].sor_values
+
+
+
+
