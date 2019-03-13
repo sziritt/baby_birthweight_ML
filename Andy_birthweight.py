@@ -4,8 +4,6 @@ Created on Wed Mar  6 11:22:01 2019
 
 @author: Andy Chen
 """
-
-
 ###############################################################################
 ##### LIBRARIES AND SET UP OF FILE 
 ###############################################################################
@@ -15,8 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-pd.set_option('display.max_columns', 10000)
-pd.set_option('display.max_rows', 10000)
+pd.set_option('display.max_columns', 100)
+pd.set_option('display.max_rows', 100)
 
 file = 'birthweight_feature_set.xlsx'
 birth_weight = pd.read_excel(file)
@@ -137,7 +135,7 @@ for col in birth_weight.columns[0:18]:
     plt.show()
 
 ###############################################################################
-##### Correlations
+##### CORRELATIONS
 ###############################################################################  
     
     
@@ -221,37 +219,13 @@ plt.show()
 
 
 ###############################################################################
-##### SUBSETTING
+##### WEIGHT GROUPING
 ###############################################################################          
 """
-# Normal weight (between 2500 and 4000)
 nweight = birth_weight[(birth_weight.bwght <= 4000) & (birth_weight.bwght >= 2500)]
-
-# LARGE FOR GESTATIONAL AGE (LGA)
-# A.K.A. "giant babies"
 hiweight = birth_weight[birth_weight.bwght > 4000]
-
-#230 LGAs (12.55%)
-
-# SMALL FOR GESTATIONAL AGE (SGA)
-# A.K.A. "small rats"
 lowweight = birth_weight[birth_weight.bwght < 2500]
-# 92 SGAs (5.02%)
-
-# Very low weight
 vlow = birth_weight[birth_weight.bwght < 1500]
-
-print('normal')
-nweight.describe()
-
-print('hi')
-hiweight.describe()
-
-print('low')
-lowweight.describe()
-
-print('very low')
-vlow.describe()
 """
 
 ###############################################################################
@@ -330,7 +304,7 @@ birth_weight['monpre'].quantile([0.1, 0.9])
 """
 
 # flagging npvis & monpre outliers
-for val in range(0, 195):
+for val in range(0, 196):
     if birth_weight.loc[val, 'npvis'] > 15.0 or birth_weight.loc[val, 'npvis'] < 7.5:
         birth_weight.loc[val, 'out_npvis'] = 1
     else:
@@ -345,8 +319,9 @@ for val in enumerate(birth_weight.loc[: , 'monpre']):
     else:
         birth_weight.loc[val[0], 'out_monpre'] = 0
 
+print(birth_weight.out_npvis.value_counts()) # 37 outliers
 print(birth_weight.out_monpre.value_counts()) # 12 outliers
-print(birth_weight.out_monpre.value_counts()) # 37 outliers
+
 
 
 
@@ -375,7 +350,7 @@ plt.show()
 
 
 ###############################################################################
-##### Univariate Regression Analysis
+##### STATSMODEL 
 ##############################################################################
 import statsmodels.formula.api as smf
 
@@ -412,7 +387,7 @@ R_squared: 0.7097
 """
 
 #  regression model 4
-lm_4 = smf.ols(formula = """bwght ~ mage  + cigs + drink + meduc + out_monpre""", 
+lm_4 = smf.ols(formula = """bwght ~ mage  + cigs + drink + meduc""", 
                data = birth_weight)
 
 results_4 = lm_4.fit()
@@ -420,7 +395,7 @@ print(results_4.summary())
 print('R_squared:',results_4.rsquared.round(4))
 
 """
-R_squared: 0.7116
+R_squared: 0.7097
 """
 
 ###############################################################################
@@ -431,40 +406,36 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import scale
 
 # linear model 1
-X = birth_weight.drop(['npvis','mblck', 'feduc', 'fblck', 'omaps', 'fmaps','bwght'], axis = 1)
+X = birth_weight.drop(['out_npvis', 'npvis','mblck', 'feduc', 'fblck', 'omaps', 'fmaps','bwght', 'wclass'], axis = 1)
 y = birth_weight.loc[:,'bwght'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=508)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 reg_all = LinearRegression()
 reg_all.fit(X_train, y_train)
 y_pred_linear = reg_all.predict(X_test)
 reg_all.score(X_test, y_test)
 
-""" Score =  0.624 """
+""" Score =  0.5846 """
 
 
 # linear model 2
-X = birth_weight.drop(['out_monpre','out_npvis','npvis','mblck', 'feduc','fblck','omaps', 'fmaps','bwght'], axis = 1)
+X = birth_weight.drop(['npvis','feduc','omaps', 'fmaps','bwght', 'wclass'], axis = 1)
 y = birth_weight.loc[:,'bwght'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=508)
-
-
-X_train_scale=scale(X_train)
-X_test_scale=scale(X_test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 reg_all = LinearRegression()
-reg_all.fit(X_train_scale, y_train)
-y_pred_linear = reg_all.predict(X_test_scale)
-reg_all.score(X_test_scale, y_test)
+reg_all.fit(X_train, y_train)
+y_pred_linear = reg_all.predict(X_test)
+reg_all.score(X_test, y_test)
 
-""" Score = 0.621"""
+""" Score = 0.5876"""
 """ Subsetting high, low, vlow groups does not work in linear regression model """
 
 
 # linear model 3
-X = birth_weight.drop(['out_monpre', 'out_npvis', 'monpre', 'npvis','mblck', 'feduc','fblck','omaps', 'fmaps','bwght'], axis = 1)
+X = birth_weight.drop([ 'npvis','mblck', 'feduc','omaps', 'fmaps','bwght', 'wclass'], axis = 1)
 y = birth_weight.loc[:,'bwght'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=508)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 
 X_train_scale=scale(X_train)
@@ -475,7 +446,21 @@ reg_all.fit(X_train_scale, y_train)
 y_pred_linear = reg_all.predict(X_test_scale)
 reg_all.score(X_test_scale, y_test)
 
-""" Score = 0.621"""
+""" Score = 0.6026"""
+
+
+# linear model 4
+X = birth_weight.drop(['out_monpre', 'monpre', 'npvis','mblck', 'moth', 'mwhte', 'foth', 'fwhte', 'fblck','feduc','omaps', 'fmaps','bwght', 'wclass'], axis = 1)
+y = birth_weight.loc[:,'bwght'].values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
+
+reg_all = LinearRegression()
+reg_all.fit(X_train, y_train)
+y_pred_linear = reg_all.predict(X_test)
+reg_all.score(X_test, y_test)
+
+
+""" Score = 0.6445 """
 
 ###############################################################################
 ##### KNN Regression
@@ -486,9 +471,9 @@ from sklearn import metrics
 
 
 # KNN model 1
-X = birth_weight.drop(['omaps', 'fmaps','bwght'], axis = 1)
+X = birth_weight.drop(['out_monpre', 'out_npvis','omaps', 'fmaps','bwght', 'wclass'], axis = 1)
 y = birth_weight.loc[:,'bwght'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=508)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 neighbors = np.arange(1,20)
 train_score = []
@@ -514,20 +499,20 @@ plt.show()
 print('Optimal number of neightbors:', test_score.index(max(test_score))+1)
 
 
-knn = KNeighborsRegressor(algorithm='auto', n_neighbors = 6)
+knn = KNeighborsRegressor(algorithm='auto', n_neighbors = 4)
 knn.fit(X_train, y_train)
 y_pred_knn = knn.predict(X_test)
-print(knn.score(X_test, y_test).round(2))
+print(knn.score(X_test, y_test).round(4))
 print('Squared Root Mean Error:', np.sqrt(metrics.mean_squared_error(y_pred_knn, y_test)).round(2))
 
-""" Score = 0.59 """
+""" Score = 0.4888 """
 
 
 
 # KNN model 2
-X = birth_weight.drop(['out_monpre', 'out_npvis', 'npvis','fage','feduc', 'omaps', 'fmaps','bwght'], axis = 1)
+X = birth_weight.drop(['out_monpre', 'out_npvis','monpre', 'npvis', 'feduc', 'omaps', 'fmaps','bwght', 'wclass'], axis = 1)
 y = birth_weight.loc[:,'bwght'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=508)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 neighbors = np.arange(1,20)
 train_score = []
@@ -543,19 +528,20 @@ for k in neighbors:
 print('Optimal number of neightbors:', test_score.index(max(test_score))+1)
 
 
-knn = KNeighborsRegressor(algorithm='auto', n_neighbors = 6)
+knn = KNeighborsRegressor(algorithm='auto', n_neighbors = 8)
 knn.fit(X_train, y_train)
 y_pred_knn = knn.predict(X_test)
-print(knn.score(X_test, y_test))
+print(knn.score(X_test, y_test).round(4))
 print('Squared Root Mean Error:', np.sqrt(metrics.mean_squared_error(y_pred_knn, y_test)).round(2))
 
-""" Score = 0.6161 """
+""" Score = 0.6861 """
+
 
 
 # KNN model 3
-X = birth_weight.drop(['out_monpre', 'out_npvis', 'feduc', 'omaps', 'fmaps','bwght'], axis = 1)
+X = birth_weight.drop(['out_monpre', 'out_npvis', 'omaps', 'fmaps','bwght', 'wclass'], axis = 1)
 y = birth_weight.loc[:,'bwght'].values
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=508)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
 # Standardizing the train and test data
 X_train_scale=scale(X_train)
@@ -576,13 +562,13 @@ for k in neighbors:
 print('Optimal number of neightbors:', test_score.index(max(test_score))+1)
 
 
-knn = KNeighborsRegressor(algorithm='auto', n_neighbors = 12)
+knn = KNeighborsRegressor(algorithm='auto', n_neighbors = 5)
 knn.fit(X_train_scale, y_train)
 y_pred_knn = knn.predict(X_test_scale)
 print(knn.score(X_test_scale, y_test))
 print('Squared Root Mean Error:', np.sqrt(metrics.mean_squared_error(y_pred_knn, y_test)).round(2))
 
-""" score = 0.43617 """ 
+""" score = 0.6732 """ 
 
 
 
@@ -591,61 +577,66 @@ print('Squared Root Mean Error:', np.sqrt(metrics.mean_squared_error(y_pred_knn,
 ##############################################################################
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn import metrics
+from sklearn.metrics import classification_report, accuracy_score
 
-X = birth_weight.drop(['omaps', 'fmaps','bwght'], axis = 1)
-y = birth_weight.loc[:,'bwght'].values
+
+for val in range(0, 196):
+    if birth_weight.loc[val, 'bwght'] > 4000 or birth_weight.loc[val, 'bwght'] < 2500:
+        birth_weight.loc[val, 'wclass'] = 1
+    else:
+        birth_weight.loc[val, 'wclass'] = 0
+
+X = birth_weight.drop(['out_monpre', 'out_npvis','omaps', 'fmaps','bwght','wclass'], axis = 1)
+y = birth_weight.loc[:,'wclass'].values
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=508)
 
-neighbors = np.arange(1,50)
-train_score = []
-test_score = []
 
-for k in neighbors:
-    knn_classifier = KNeighborsClassifier(algorithm = 'auto', 
-                              n_neighbors = k)
-    knn_classifier.fit(X_train, y_train)
-    train_score.append(knn_classifier.score(X_train, y_train))
-    test_score.append(knn_classifier.score(X_test, y_test))
+
+error = []
+
+# K values range between 1 and 40
+for x in range(1,40):
+    knn = KNeighborsClassifier(n_neighbors = x)
+    knn.fit(X_train, y_train)
+    y_pred = knn.predict(X_test)
+    error.append(np.mean(y_pred != y_test)) #Why?
     
-plt.figure(figsize=(12,6))
-plt.plot(neighbors, train_score, color = 'blue', label='Train score')
-plt.plot(neighbors, test_score, color = 'red', label='Test score')
-plt.legend()
-plt.title('Test Score vs Train Score by Number of Neighbors')
-plt.ylabel('Score')
-plt.xlabel('Number of Neighbors')
-plt.tight_layout()
+plt.figure(figsize=(12,6))    
+plt.plot(range(1,40), error, color='blue', linestyle='dashed', marker='o', markerfacecolor='blue', markersize=10)
+plt.title('Error Rate for K')
+plt.ylabel('Mean Error')
+plt.xlabel('K Values')
 plt.show()
 
-print('Optimal number of neightbos:', test_score.index(max(test_score))+1)
-# print('Optimal number of neightbos:', train_score.index(max(train_score))+1)
+print('Optimal number of neightbors:', error.index(min(error))+1)
 
 
-knn_classifier = KNeighborsClassifier(algorithm='auto', n_neighbors = 9)
+
+
+knn_classifier = KNeighborsClassifier(n_neighbors = 2)
 knn_classifier.fit(X_train, y_train)
 y_pred_knn = knn_classifier.predict(X_test)
-print(knn_classifier.score(X_test, y_test).round(2))
-print('Squared Root Mean Error:', np.sqrt(metrics.mean_squared_error(y_pred_knn, y_test)).round(2))
+print(accuracy_score(y_test, y_pred_knn).round(4))
+print(classification_report(y_test, y_pred_knn))
 
-""" Score = 0.05 """
 
+""" Score =  0.9 """
+""" However, the classication model failed to predict any obnormal birthweight """
 
 
 # KNN classifier model 2
 from sklearn.preprocessing import scale
+from sklearn.linear_model import LogisticRegression
 
 X_train_scale=scale(X_train)
 X_test_scale=scale(X_test)
 
-
 # Fitting logistic regression on our standardized data set
-from sklearn.linear_model import LogisticRegression
-
 log=LogisticRegression(penalty='l2',C=.01)
 log.fit(X_train_scale,y_train)
-log.predict(X_test_scale)
-log.score(X_test_scale, y_test)
+y_pred_log = log.predict(X_test_scale)
+accuracy_score(y_test, y_pred_log)
 
-from sklearn.metrics import accuracy_score
-accuracy_score(y_test,knn.predict(X_test_minmax))
+""" Score =  0.9 """
+
+
