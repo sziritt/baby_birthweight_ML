@@ -1,0 +1,38 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  bwght   R-squared:                       0.738
+Model:                            OLS   Adj. R-squared:                  0.721
+Method:                 Least Squares   F-statistic:                     42.92
+Date:                Tue, 12 Mar 2019   Prob (F-statistic):           8.75e-47
+Time:                        21:18:26   Log-Likelihood:                -1414.9
+No. Observations:                 196   AIC:                             2856.
+Df Residuals:                     183   BIC:                             2898.
+Df Model:                          12                                         
+Covariance Type:            nonrobust                                         
+======================================================================================
+                         coef    std err          t      P>|t|      [0.025      0.975]
+--------------------------------------------------------------------------------------
+Intercept           4237.3532    358.016     11.836      0.000    3530.983    4943.723
+df['mage']            -3.6123      6.437     -0.561      0.575     -16.313       9.088
+df['out_mage']      -436.3819    136.450     -3.198      0.002    -705.600    -167.164
+df['fage']            -3.5016      3.497     -1.001      0.318     -10.401       3.398
+df['log_feduc']      131.9243     80.974      1.629      0.105     -27.839     291.687
+df['cigs']            -6.0452     17.306     -0.349      0.727     -40.190      28.100
+df['smoker']         -21.6127    129.618     -0.167      0.868    -277.351     234.126
+df['drink']         -168.8971     37.503     -4.504      0.000    -242.892     -94.903
+df['drinker']        143.8603    124.499      1.156      0.249    -101.778     389.499
+df['lo_out_npvis']   -75.3900     54.620     -1.380      0.169    -183.156      32.377
+df['hi_out_npvis']   -93.4553     90.665     -1.031      0.304    -272.338      85.428
+df['cigs_mage']       -0.7547      0.416     -1.816      0.071      -1.575       0.065
+df['drink_mage']       1.3820      0.872      1.585      0.115      -0.338       3.102
+==============================================================================
+Omnibus:                        3.930   Durbin-Watson:                   1.332
+Prob(Omnibus):                  0.140   Jarque-Bera (JB):                4.510
+Skew:                           0.114   Prob(JB):                        0.105
+Kurtosis:                       3.707   Cond. No.                     8.98e+03
+==============================================================================
+
+Warnings:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.
+[2] The condition number is large, 8.98e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
