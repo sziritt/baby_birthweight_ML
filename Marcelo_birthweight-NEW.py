@@ -235,6 +235,118 @@ birth_weight['wclass'] = 'norm_weight'
 birth_weight.loc[df.bwght < 2500,'wclass'] = 'lo_weight'
 birth_weight.loc[df.bwght > 4000,'wclass'] = 'hi_weight'
 
+########
+# Testing new variables:
+
+
+birth_weight['risk'] = 0
+for value in enumerate(birth_weight['risk']):
+    # Cigs
+    if birth_weight.loc[value[0],'cigs'] > 17:
+        birth_weight.loc[value[0],'risk'] += 2
+    elif birth_weight.loc[value[0],'cigs'] < 4:
+        birth_weight.loc[value[0],'risk'] += 0
+    else:
+        birth_weight.loc[value[0],'risk'] += 1
+    #Drink    
+    if birth_weight.loc[value[0],'drink'] > 10:
+        birth_weight.loc[value[0],'risk'] += 10
+    elif birth_weight.loc[value[0],'drink'] < 1:
+        birth_weight.loc[value[0],'risk'] += 0
+    else:
+        birth_weight.loc[value[0],'risk'] += 1
+        
+     #fage   
+    if birth_weight.loc[value[0],'fage'] > 48:
+        birth_weight.loc[value[0],'risk'] += 2
+    elif birth_weight.loc[value[0],'fage'] < 36:
+        birth_weight.loc[value[0],'risk'] += 0
+    else:
+        birth_weight.loc[value[0],'risk'] += 1
+                
+     #mage   
+    if birth_weight.loc[value[0],'mage'] > 58:
+        birth_weight.loc[value[0],'risk'] += 2
+    elif birth_weight.loc[value[0],'mage'] < 36:
+        birth_weight.loc[value[0],'risk'] += 0
+    else:
+        birth_weight.loc[value[0],'risk'] += 1
+df['risk'] = birth_weight['risk']
+        
+counter = 0
+
+birth_weight['regular'] = 0
+
+for value in birth_weight['npvis']:
+    if birth_weight.loc[counter,'monpre'] == 1:
+        if (value >= 8 and value <= 15):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 2:
+        if (value >= 7 and value <= 14):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 3:
+        if (value >= 6 and value <= 13):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 4:
+        if (value >= 5 and value <= 12):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 5:
+        if (value >= 4 and value <= 11):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 6:
+        if (value >= 3 and value <= 9):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 7:
+        if (value >= 2 and value <= 7):
+            birth_weight.loc[counter,'regular'] = 1
+    elif birth_weight.loc[counter,'monpre'] == 8:
+        if (value >= 1 and value <= 5):
+            birth_weight.loc[counter,'regular'] = 1 
+    counter += 1
+    
+df['regular'] = birth_weight['regular']
+
+
+
+birth_weight['magegroup'] = ''
+# age brackets: up to 30, 30-40, 40-55, more 55
+for value in enumerate(birth_weight['magegroup']):
+    if birth_weight.loc[value[0],'mage'] <= 30:
+        birth_weight.loc[value[0],'magegroup'] = 'mage<30'
+    elif 30< birth_weight.loc[value[0],'mage'] <= 40:
+        birth_weight.loc[value[0],'magegroup'] = 'mage30-40'
+    elif 40< birth_weight.loc[value[0],'mage'] < 55:
+        birth_weight.loc[value[0],'magegroup'] = 'mage40-55'
+    else:
+        birth_weight.loc[value[0],'magegroup'] = 'mage55plus'
+    
+df['magegroup'] = birth_weight['magegroup']
+
+magegroup = pd.get_dummies(df['magegroup'],drop_first=False)
+df = pd.concat([df,magegroup],axis=1)
+
+df = df.drop('magegroup',axis=1)
+
+birth_weight['fagegroup'] = ''
+# age brackets: up to 30, 30-40, 40-55, more 55
+for value in enumerate(birth_weight['fagegroup']):
+    if birth_weight.loc[value[0],'fage'] <= 30:
+        birth_weight.loc[value[0],'fagegroup'] = 'fage<30'
+    elif 30< birth_weight.loc[value[0],'fage'] <= 40:
+        birth_weight.loc[value[0],'fagegroup'] = 'fage30-40'
+    elif 40< birth_weight.loc[value[0],'fage'] < 50:
+        birth_weight.loc[value[0],'fagegroup'] = 'fage40-50'
+    else:
+        birth_weight.loc[value[0],'fagegroup'] = 'fage50plus'
+    
+df['fagegroup'] = birth_weight['fagegroup']
+
+magegroup = pd.get_dummies(df['fagegroup'],drop_first=False)
+df = pd.concat([df,magegroup],axis=1)
+
+df = df.drop('fagegroup',axis=1)
+
+
 
 
 ###############################################################################
@@ -960,6 +1072,8 @@ reg_all2.fit(X1_train,y1_train)
 
 # Compute and print R^2 and RMSE
 y1_pred_reg2 = reg_all2.predict(X1_test)
+
+
 print('R-Squared: ',reg_all2.score(X1_test,y1_test).round(3))
 rmse = np.sqrt(mean_squared_error(y1_test , y1_pred_reg2))
 print("Root Mean Squared Error: {}".format(rmse))
@@ -1210,27 +1324,30 @@ features = pd.DataFrame({'var':baby_data.columns, 'coef':tree_full.feature_impor
 
 
 ###########
-# LAST MODEL MAR-11TH
-# SCORE = 0.751
+# LAST MODEL MAR-12nd
+# SCORE = 0.743
 
 baby_data = df.loc[:,['mage',
                       'out_mage',
-                      'norm_fage',
+                      'fage',
                       'log_feduc',
                       'cigs',
-                      #'out_cigs',
                       'smoker',
                       'drink',
                       'drinker',
-                      'trasher',
-                      #'male',
-                      
                       'lo_out_npvis',
                       'hi_out_npvis',
-                      'sq_npvis',                  
-                      #'std_monpre',
-                      'cigs_mage',
-                      'drink_mage'
+                      'cigs_mage', # effects cigs*age
+                      'drink_mage',# effects drink*age
+                      
+                      
+                      #'regular'
+                      #'out_cigs',                                                   #'sq_npvis',                  
+                      #'std_monpre',                                                 #'trasher',
+                      #'male',
+                      #'risk', # ????????????????
+
+
                       ]]
 baby_target = df.loc[:,'bwght']
 
@@ -1246,8 +1363,16 @@ rmse = np.sqrt(mean_squared_error(y1_test , y1_pred_reg2))
 print("Root Mean Squared Error: {}".format(rmse))
 
 
+# store predictions and residuals
+y_pred_reg_all2 = reg_all2.predict(X1_test)
+reg_all2_predictions = pd.DataFrame(y_pred_reg_all2)
+reg_all2_predictions.columns = ['reg_all2_results']
+results = pd.concat([df,reg_all2_predictions],axis=1)
+results['residuals'] = results['reg_all2_results'] - results['bwght']
+results.to_excel('reg_all2_results.xls')
 
 
-birth_weight['risk'] = 0
-for value in enumerate(birth_weight['risk']):
-    if birth_weight['risk']
+
+
+
+
