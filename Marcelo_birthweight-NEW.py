@@ -1371,8 +1371,32 @@ results = pd.concat([df,reg_all2_predictions],axis=1)
 results['residuals'] = results['reg_all2_results'] - results['bwght']
 results.to_excel('reg_all2_results.xls')
 
+################ Model in statsmodels:
+
+import statsmodels.formula.api as smf 
+
+# Code to help building the variables to fit:
+# for x in X.columns: print("df['"+x+"'] +") 
+
+### OPTION 1 
+# Building a Regression Base
+lm_babyweight = smf.ols(formula = """bwght ~ df['mage'] +
+df['out_mage'] +
+df['fage'] +
+df['log_feduc'] +
+df['cigs'] +
+df['smoker'] +
+df['drink'] +
+df['drinker'] +
+df['lo_out_npvis'] +
+df['hi_out_npvis'] +
+df['cigs_mage'] +
+df['drink_mage'] """,
+                        data = df)
+
+# Fitting Results
+lmresults = lm_babyweight.fit()
 
 
-
-
-
+# Printing Summary Statistics
+print(lmresults.summary())
