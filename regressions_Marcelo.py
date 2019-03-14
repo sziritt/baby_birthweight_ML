@@ -620,7 +620,8 @@ def test_regression(variables):
 
     # Compute and print R^2 and RMSE
     yf_pred_reg2 = bb.predict(Xf_test)
-    print('R-Squared: ',bb.score(Xf_test,yf_test).round(3))
+    print('R-Squared (train set): ',bb.score(Xf_train,yf_train).round(3))
+    print('R-Squared  (test set): ',bb.score(Xf_test,yf_test).round(3))
     rmse = np.sqrt(mean_squared_error(yf_test , yf_pred_reg2))
     print("Root Mean Squared Error: {}".format(rmse))
 
@@ -629,3 +630,33 @@ def test_regression(variables):
 test_regression(['mage','cigs','drink','lo_out_npvis','hi_out_npvis','out_drink','drinker'])
 
 
+##############################
+#  TESTING KNN
+
+from sklearn.neighbors import KNeighborsRegressor
+
+def test_knn(variables,knn):
+    bb_data = df.loc[:,variables]
+    
+    bb_target = df.loc[:,'bwght']
+
+    Xf_train, Xf_test, yf_train, yf_test = train_test_split(bb_data,bb_target, 
+                                                            test_size = 0.1, random_state=508)
+    for k in range(1,knn):
+        print('number of neighbors :'+str(k))
+        bb = KNeighborsRegressor(algorithm = 'auto',
+                                  n_neighbors = k)
+        bb.fit(Xf_train,yf_train)
+
+        # Compute and print R^2 and RMSE
+        yf_pred_reg2 = bb.predict(Xf_test)
+        print('R-Squared (train set): ',bb.score(Xf_train,yf_train).round(3))
+        print('R-Squared  (test set): ',bb.score(Xf_test,yf_test).round(3))
+        rmse = np.sqrt(mean_squared_error(yf_test , yf_pred_reg2))
+        print("Root Mean Squared Error: {}".format(rmse))
+
+
+
+
+# KNN Model with Rˆ2 = 0.614 with k=7
+test_knn(['mage','fage','cigs','drink','npvis','lo_out_npvis','out_drink'],15)
